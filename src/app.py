@@ -38,6 +38,42 @@ activities = {
         "schedule": "Mondays, Wednesdays, Fridays, 2:00 PM - 3:00 PM",
         "max_participants": 30,
         "participants": ["john@mergington.edu", "olivia@mergington.edu"]
+    },
+    "Basketball Team": {
+        "description": "Competitive basketball training and matches",
+        "schedule": "Mondays and Thursdays, 4:00 PM - 5:30 PM",
+        "max_participants": 15,
+        "participants": ["alex@mergington.edu"]
+    },
+    "Tennis Club": {
+        "description": "Tennis lessons and friendly competitions",
+        "schedule": "Tuesdays and Saturdays, 3:00 PM - 4:30 PM",
+        "max_participants": 10,
+        "participants": ["lucas@mergington.edu", "isabella@mergington.edu"]
+    },
+    "Drama Club": {
+        "description": "Theater performances and acting workshops",
+        "schedule": "Wednesdays, 3:30 PM - 5:00 PM",
+        "max_participants": 25,
+        "participants": ["maria@mergington.edu"]
+    },
+    "Art Studio": {
+        "description": "Painting, drawing, and sculpture techniques",
+        "schedule": "Mondays and Fridays, 3:30 PM - 4:30 PM",
+        "max_participants": 18,
+        "participants": ["anna@mergington.edu", "luis@mergington.edu"]
+    },
+    "Debate Team": {
+        "description": "Develop argumentation skills and compete in debates",
+        "schedule": "Thursdays, 3:30 PM - 4:45 PM",
+        "max_participants": 16,
+        "participants": ["carlos@mergington.edu"]
+    },
+    "Science Club": {
+        "description": "Explore STEM projects and conduct experiments",
+        "schedule": "Tuesdays, 4:00 PM - 5:00 PM",
+        "max_participants": 22,
+        "participants": ["sara@mergington.edu", "pablo@mergington.edu"]
     }
 }
 
@@ -62,6 +98,44 @@ def signup_for_activity(activity_name: str, email: str):
     # Get the specific activity
     activity = activities[activity_name]
 
+    # Normalize email and validate student is not already signed up
+    normalized_email = email.strip().lower()
+    if any(p.strip().lower() == normalized_email for p in activity["participants"]):
+        raise HTTPException(status_code=400, detail="Student already signed up for this activity")
+
     # Add student
-    activity["participants"].append(email)
-    return {"message": f"Signed up {email} for {activity_name}"}
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
+
+
+@app.post("/activities/{activity_name}/withdraw")
+def withdraw_from_activity(activity_name: str, email: str):
+    """Remove a student from an activity"""
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    activity = activities[activity_name]
+
+    normalized_email = email.strip().lower()
+    # ensure email is signed up
+    found = None
+    for p in activity["participants"]:
+        if p.strip().lower() == normalized_email:
+            found = p
+            break
+    if not found:
+        raise HTTPException(status_code=400, detail="Student not signed up for this activity")
+
+    activity["participants"].remove(found)
+    return {"message": f"Removed {normalized_email} from {activity_name}"}
+
+
+    # Normalize email and validate student is not already signed up    
+    normalized_email = email.strip().lower()
+    if any(p.strip().lower() == normalized_email for p in activity["participants"]):
+        raise HTTPException(status_code=400, detail="Student already signed up for this activity")
+
+    # Add student
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
