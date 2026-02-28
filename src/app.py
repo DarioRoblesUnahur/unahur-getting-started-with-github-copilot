@@ -98,6 +98,15 @@ def signup_for_activity(activity_name: str, email: str):
     # Get the specific activity
     activity = activities[activity_name]
 
+    # Normalize email and validate student is not already signed up
+    normalized_email = email.strip().lower()
+    if any(p.strip().lower() == normalized_email for p in activity["participants"]):
+        raise HTTPException(status_code=400, detail="Student already signed up for this activity")
+
+    # Add student
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
+
 
 @app.post("/activities/{activity_name}/withdraw")
 def withdraw_from_activity(activity_name: str, email: str):
