@@ -99,10 +99,34 @@ def signup_for_activity(activity_name: str, email: str):
     activity = activities[activity_name]
 
 
-    # Validate student is not already signed up    
-    if email in activity["participants"]:
+@app.post("/activities/{activity_name}/withdraw")
+def withdraw_from_activity(activity_name: str, email: str):
+    """Remove a student from an activity"""
+    # Validate activity exists
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    activity = activities[activity_name]
+
+    normalized_email = email.strip().lower()
+    # ensure email is signed up
+    found = None
+    for p in activity["participants"]:
+        if p.strip().lower() == normalized_email:
+            found = p
+            break
+    if not found:
+        raise HTTPException(status_code=400, detail="Student not signed up for this activity")
+
+    activity["participants"].remove(found)
+    return {"message": f"Removed {normalized_email} from {activity_name}"}
+
+
+    # Normalize email and validate student is not already signed up    
+    normalized_email = email.strip().lower()
+    if any(p.strip().lower() == normalized_email for p in activity["participants"]):
         raise HTTPException(status_code=400, detail="Student already signed up for this activity")
 
     # Add student
-    activity["participants"].append(email)
-    return {"message": f"Signed up {email} for {activity_name}"}
+    activity["participants"].append(normalized_email)
+    return {"message": f"Signed up {normalized_email} for {activity_name}"}
